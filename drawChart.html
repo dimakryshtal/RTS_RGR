@@ -1,0 +1,165 @@
+<!DOCTYPE HTML>
+<html>
+<head>  
+	<script>
+window.onload = function () {
+
+
+	
+	function testFIFO(queue) {
+
+		fifo(queue)
+
+
+		console.log(finishedTasks)
+		console.log(failedTasks)
+	}
+	
+	function testEDF(queue) {
+		edf(queue)
+		
+		console.log(finishedTasks)
+		console.log(failedTasks)
+		
+	}
+	
+	function testRM(queue) {
+		rm(queue)
+		
+		console.log(finishedTasks)
+		console.log(failedTasks)
+	}
+	const fifoResults = []
+	const edfResults = []
+	const rmResults = []
+
+	const fifoIdleTime = []
+	const edfIdleTime = []
+	const rmIdleTime = []
+
+	const fifoFailed = []
+	const edfFailed = []
+	const rmFailed = []
+
+	for (let i = 1;  i <= 10; i++) {
+		const queue = generateQueue(100, i)
+		const queue2 = [...queue]
+		const queue3 = [...queue]
+
+		testFIFO(queue)
+		// //console.log(`Idle time: ${idleTime}`)
+		// //console.log(`Avarage waiting time for FIFO with intensity ${i}: ${calculateAvarageWaitingTime()}`)
+		fifoResults.push({x:i, y: calculateAvarageWaitingTime()})
+		fifoIdleTime.push({x:i, y: 1 - (idleTime/allTime)})
+		fifoFailed.push({x:i , y: (failedTasks.length/100)})
+		
+		// console.log(idleTime);
+		// console.log(allTime)
+		testEDF(queue2)
+		edfResults.push({x: i, y: calculateAvarageWaitingTime()})
+		edfIdleTime.push({x:i, y: 1 - (idleTime/allTime)})
+		edfFailed.push({x:i , y: (failedTasks.length/100)})
+		// console.log(`Avarage waiting time for EDF with intensity ${i}: ${calculateAvarageWaitingTime()}`)
+		testRM(queue3)
+		rmResults.push({x: i, y: calculateAvarageWaitingTime()})
+		rmIdleTime.push({x:i, y: 1 - (idleTime/allTime)})
+		rmFailed.push({x:i , y: (failedTasks.length/100)})
+		// console.log(`Avarage waiting time for RM with intensity ${i}: ${calculateAvarageWaitingTime()}\n`)
+	}
+	//console.log(fifoResults)
+	//console.log(edfResults)
+	//console.log(rmResults)
+
+
+
+	var chart = new CanvasJS.Chart("chartContainer", {
+		animationEnabled: true,
+		theme: "light1",
+	
+		data: [{        
+			type: "line",
+    	  	indexLabelFontSize: 16,
+			showInLegend: true,
+			name: "fifo",
+			dataPoints: fifoResults
+		},
+		{        
+			type: "line",
+    	  	indexLabelFontSize: 16,
+			showInLegend: true,
+			name: "edf",
+			dataPoints: edfResults
+		},
+		{        
+			type: "line",
+    	  	indexLabelFontSize: 16,
+			showInLegend: true,
+			name: "rm",
+			dataPoints: rmResults
+		}]
+	});
+	var chart2 = new CanvasJS.Chart("chartContainer2", {
+		animationEnabled: true,
+		theme: "light1",
+	
+		data: [{        
+			type: "line",
+    	  	indexLabelFontSize: 16,
+			showInLegend: true,
+			name: "fifo",
+			dataPoints: fifoIdleTime
+		}, {        
+			type: "line",
+    	  	indexLabelFontSize: 16,
+			showInLegend: true,
+			name: "edf",
+			dataPoints: edfIdleTime
+		}, {        
+			type: "line",
+    	  	indexLabelFontSize: 16,
+			showInLegend: true,
+			name: "rm",
+			dataPoints: rmIdleTime
+		}]
+	});
+	var chart3 = new CanvasJS.Chart("chartContainer3", {
+		animationEnabled: true,
+		theme: "light1",
+	
+		data: [{        
+			type: "line",
+    	  	indexLabelFontSize: 16,
+			showInLegend: true,
+			name: "fifo",
+			dataPoints: fifoFailed
+		}, {        
+			type: "line",
+    	  	indexLabelFontSize: 16,
+			showInLegend: true,
+			name: "edf",
+			dataPoints: edfFailed
+		}, {        
+			type: "line",
+    	  	indexLabelFontSize: 16,
+			showInLegend: true,
+			name: "rm",
+			dataPoints: rmFailed
+		}]
+	});
+
+	chart.render();
+	chart2.render();
+	chart3.render();
+}
+</script>
+</head>
+<body>
+	<div id="chartContainer" style="height: 500px; width: 500px;"></div>
+	<div id="chartContainer2" style="height: 500px; width: 500px;"></div>
+	<div id="chartContainer3" style="height: 500px; width: 500px;"></div>
+	<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+	<script src="signalGenerator.js"></script>
+	<script src="algorithms.js"></script>
+	<script src="generateQueue.js"></script>
+</body>
+</html>
