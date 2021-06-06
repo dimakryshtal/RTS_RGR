@@ -3,31 +3,26 @@
 <head>  
 	<script>
 window.onload = function () {
-
-
-	
-	function testFIFO(queue) {
+	function testFIFO(queue, intensity) {
 
 		fifo(queue)
-
-
-		console.log(finishedTasks)
-		console.log(failedTasks)
+		fifoResults.push({x: intensity, y: calculateAvarageWaitingTime()})
+		fifoIdleTime.push({x: intensity, y: 1 - (idleTime/allTime)})
+		fifoFailed.push({x: intensity , y: (failedTasks.length/100)})
 	}
 	
-	function testEDF(queue) {
+	function testEDF(queue, intensity) {
 		edf(queue)
-		
-		console.log(finishedTasks)
-		console.log(failedTasks)
-		
+		edfResults.push({x: intensity, y: calculateAvarageWaitingTime()})
+		edfIdleTime.push({x: intensity, y: 1 - (idleTime/allTime)})
+		edfFailed.push({x: intensity , y: (failedTasks.length/100)})
 	}
 	
-	function testRM(queue) {
+	function testRM(queue , intensity) {
 		rm(queue)
-		
-		console.log(finishedTasks)
-		console.log(failedTasks)
+		rmResults.push({x: intensity, y: calculateAvarageWaitingTime()})
+		rmIdleTime.push({x: intensity, y: 1 - (idleTime/allTime)})
+		rmFailed.push({x: intensity , y: (failedTasks.length/100)})
 	}
 	const fifoResults = []
 	const edfResults = []
@@ -46,29 +41,10 @@ window.onload = function () {
 		const queue2 = [...queue]
 		const queue3 = [...queue]
 
-		testFIFO(queue)
-		// //console.log(`Idle time: ${idleTime}`)
-		// //console.log(`Avarage waiting time for FIFO with intensity ${i}: ${calculateAvarageWaitingTime()}`)
-		fifoResults.push({x:i, y: calculateAvarageWaitingTime()})
-		fifoIdleTime.push({x:i, y: 1 - (idleTime/allTime)})
-		fifoFailed.push({x:i , y: (failedTasks.length/100)})
-		
-		// console.log(idleTime);
-		// console.log(allTime)
-		testEDF(queue2)
-		edfResults.push({x: i, y: calculateAvarageWaitingTime()})
-		edfIdleTime.push({x:i, y: 1 - (idleTime/allTime)})
-		edfFailed.push({x:i , y: (failedTasks.length/100)})
-		// console.log(`Avarage waiting time for EDF with intensity ${i}: ${calculateAvarageWaitingTime()}`)
-		testRM(queue3)
-		rmResults.push({x: i, y: calculateAvarageWaitingTime()})
-		rmIdleTime.push({x:i, y: 1 - (idleTime/allTime)})
-		rmFailed.push({x:i , y: (failedTasks.length/100)})
-		// console.log(`Avarage waiting time for RM with intensity ${i}: ${calculateAvarageWaitingTime()}\n`)
+		testFIFO(queue, i)	
+		testEDF(queue2, i)
+		testRM(queue3, i)
 	}
-	//console.log(fifoResults)
-	//console.log(edfResults)
-	//console.log(rmResults)
 
 
 

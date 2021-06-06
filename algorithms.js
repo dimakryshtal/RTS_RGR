@@ -158,14 +158,7 @@ const executeTask = (task) => {
         case "getVariance":
             executionTime = getVariance(signal)
             break
-
     }
 
     return executionTime
 }
-
-
-
-
-
-
