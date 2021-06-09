@@ -5,21 +5,21 @@
 window.onload = function () {
 	function testFIFO(queue, intensity) {
 
-		fifo(queue)
+		fifo(queue,2)
 		fifoResults.push({x: intensity, y: calculateAvarageWaitingTime()})
 		fifoIdleTime.push({x: intensity, y: 1 - (idleTime/allTime)})
 		fifoFailed.push({x: intensity , y: (failedTasks.length/100)})
 	}
 	
 	function testEDF(queue, intensity) {
-		edf(queue)
+		edf(queue,2)
 		edfResults.push({x: intensity, y: calculateAvarageWaitingTime()})
 		edfIdleTime.push({x: intensity, y: 1 - (idleTime/allTime)})
 		edfFailed.push({x: intensity , y: (failedTasks.length/100)})
 	}
 	
 	function testRM(queue , intensity) {
-		rm(queue)
+		rm(queue,2)
 		rmResults.push({x: intensity, y: calculateAvarageWaitingTime()})
 		rmIdleTime.push({x: intensity, y: 1 - (idleTime/allTime)})
 		rmFailed.push({x: intensity , y: (failedTasks.length/100)})

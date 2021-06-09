@@ -3,6 +3,11 @@ let failedTasks = [];
 let idleTime = 0;
 let allTime = 0;
 
+const os = require('os');
+const cp = require('child_process');
+
+const cpuCount = os.cpus().length;
+
 const task1 = (t, arrT, d, aET) => {
     return {
         task: t,
@@ -16,111 +21,132 @@ const task1 = (t, arrT, d, aET) => {
 
 
 
-const fifo = (queue) => {
-    finishedTasks = []
-    failedTasks = []
-    idleTime = 0
-    allTime = 0
-    let timeWhileExecuting = 0
-    const timeStart = Date.now()
-    while (queue.length != 0) {
-        const timeRan = Date.now() - timeStart
-        if(timeRan >= queue[0].arrivalTime){
-            const timeNow = Date.now()
-            queue[0].startTime = timeRan
-            const execTime = executeTask(queue[0].task)
-            queue[0].endtime = queue[0].startTime + (execTime == 0 ? 1: execTime)
-            timeWhileExecuting += (Date.now() - timeNow)
-            if(queue[0].deadline < queue[0].endtime) {
-                console.log("fifo deadline exceeded")
-                failedTasks.push(queue.shift())
-                continue        
-            }
-            
-        } else {
-            continue
-        }
-        finishedTasks.push(queue.shift())
-    }
-    allTime = Date.now() - timeStart
-    idleTime = allTime - timeWhileExecuting
-}
-
-const edf = (queue) => {
+const fifo = (queue, numberOfProc = 1) => {
     finishedTasks = []
     failedTasks = []
     idleTime = 0
     allTime = 0
     let timeWhileExecuting = 0
 
-    queue.sort((a, b) => {a.deadline - b.deadline})
+    const queueLength = queue.length
+    const queueHalves = [queue.slice(0, queueLength/2), queue.slice(queueLength/2 + 1)]
 
     const timeStart = Date.now()
-    while (queue.length != 0) {
-        allTime++;
-        const timeRan = Date.now() - timeStart
-        let currentIndex = 0
-        const currentTask = queue.find(element => {
-            currentIndex++
-            return element.arrivalTime <= timeRan
-        })
-        if(currentTask != undefined){
-            const timeNow = Date.now()
-            currentTask.startTime = timeRan
-            const execTime = executeTask(currentTask.task)
-            currentTask.endtime = currentTask.startTime + (execTime == 0 ? 1: execTime)
-            timeWhileExecuting += (Date.now() - timeNow)
-            if(currentTask.deadline < currentTask.endtime) {
-                console.log("edf deadline exceeded")
-                failedTasks.push(currentTask)
-                queue.splice(currentIndex - 1, 1)
-                continue        
+    for (let i = 0; i < numberOfProc; i++) {
+        console.log(`Processor number ${i + 1}`)
+        while (queueHalves[i].length != 0) {
+            const timeRan = Date.now() - timeStart
+            if(timeRan >= queueHalves[i][0].arrivalTime){
+                const timeNow = Date.now()
+                queueHalves[i][0].startTime = timeRan
+                const execTime = executeTask(queueHalves[i][0].task)
+                queueHalves[i][0].endtime = queueHalves[i][0].startTime + (execTime == 0 ? 1: execTime)
+                timeWhileExecuting += (Date.now() - timeNow)
+                if(queueHalves[i][0].deadline < queueHalves[i][0].endtime) {
+                    console.log("fifo deadline exceeded")
+                    failedTasks.push(queueHalves[i].shift())
+                    continue        
+                }
+                
+            } else {
+                continue
             }
-            finishedTasks.push(currentTask)
-            queue.splice(currentIndex - 1, 1)
-        } else {
-            continue
+            finishedTasks.push(queueHalves[i].shift())
         }
     }
     allTime = Date.now() - timeStart
     idleTime = allTime - timeWhileExecuting
 }
 
-const rm = (queue) => {
+const edf = (queue, numberOfProc = 1) => {
     finishedTasks = []
     failedTasks = []
     idleTime = 0
     allTime = 0
     let timeWhileExecuting = 0
 
-    queue.sort((a, b) => a.avarageExecutionTime - b.avarageExecutionTime)
+
+    const queueLength = queue.length
+    const queueHalves = [queue.slice(0, queueLength/2), queue.slice(queueLength/2 + 1)]
+
+
     const timeStart = Date.now()
-    while (queue.length != 0) {
-        allTime++;
-        const timeRan = Date.now() - timeStart
-        let currentIndex = 0
-        const currentTask = queue.find(element => {
-            currentIndex++
-            return element.arrivalTime <= timeRan
-        })
-        if(currentTask != undefined){
-            const timeNow = Date.now()
-            currentTask.startTime = timeRan
-            const execTime = executeTask(currentTask.task)
-            currentTask.endtime = currentTask.startTime + (execTime == 0 ? 1: execTime)
-            timeWhileExecuting += (Date.now() - timeNow)
-            if(currentTask.deadline < currentTask.endtime) {
-                console.log("rm deadline exceeded")
-                failedTasks.push(currentTask)
-                queue.splice(currentIndex - 1, 1)
-                continue        
+    for (let i = 0; i < numberOfProc; i++) {
+        console.log(`Processor number ${i + 1}`)
+        queueHalves[i].sort((a, b) => {a.deadline - b.deadline})
+
+        while (queueHalves[i].length != 0) {
+            allTime++;
+            const timeRan = Date.now() - timeStart
+            let currentIndex = 0
+            const currentTask = queueHalves[i].find(element => {
+                currentIndex++
+                return element.arrivalTime <= timeRan
+            })
+            if(currentTask != undefined){
+                const timeNow = Date.now()
+                currentTask.startTime = timeRan
+                const execTime = executeTask(currentTask.task)
+                currentTask.endtime = currentTask.startTime + (execTime == 0 ? 1: execTime)
+                timeWhileExecuting += (Date.now() - timeNow)
+                if(currentTask.deadline < currentTask.endtime) {
+                    console.log("edf deadline exceeded")
+                    failedTasks.push(currentTask)
+                    queueHalves[i].splice(currentIndex - 1, 1)
+                    continue        
+                }
+                finishedTasks.push(currentTask)
+                queueHalves[i].splice(currentIndex - 1, 1)
+            } else {
+                continue
             }
-            finishedTasks.push(currentTask)
-            queue.splice(currentIndex - 1, 1)
-        } else {
-            idleTime++
-            continue
-        }   
+        }
+    }
+    allTime = Date.now() - timeStart
+    idleTime = allTime - timeWhileExecuting
+}
+
+const rm = (queue, numberOfProc = 1) => {
+    finishedTasks = []
+    failedTasks = []
+    idleTime = 0
+    allTime = 0
+    let timeWhileExecuting = 0
+    const queueLength = queue.length
+    const queueHalves = [queue.slice(0, queueLength/2), queue.slice(queueLength/2 + 1)]
+
+
+    const timeStart = Date.now()
+    for (let i = 0; i < numberOfProc; i++) {
+        console.log(`Processor number ${i + 1}`)
+        queueHalves[i].sort((a, b) => a.avarageExecutionTime - b.avarageExecutionTime)
+        while (queueHalves[i].length != 0) {
+            allTime++;
+            const timeRan = Date.now() - timeStart
+            let currentIndex = 0
+            const currentTask = queueHalves[i].find(element => {
+                currentIndex++
+                return element.arrivalTime <= timeRan
+            })
+            if(currentTask != undefined){
+                const timeNow = Date.now()
+                currentTask.startTime = timeRan
+                const execTime = executeTask(currentTask.task)
+                currentTask.endtime = currentTask.startTime + (execTime == 0 ? 1: execTime)
+                timeWhileExecuting += (Date.now() - timeNow)
+                if(currentTask.deadline < currentTask.endtime) {
+                    console.log("rm deadline exceeded")
+                    failedTasks.push(currentTask)
+                    queueHalves[i].splice(currentIndex - 1, 1)
+                    continue        
+                }
+                finishedTasks.push(currentTask)
+                queueHalves[i].splice(currentIndex - 1, 1)
+            } else {
+                idleTime++
+                continue
+            }   
+        }
     }
     allTime = Date.now() - timeStart
     idleTime = allTime - timeWhileExecuting
